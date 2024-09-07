@@ -1,6 +1,7 @@
 from bs4 import BeautifulSoup
 import os
 from PyPDF2 import PdfReader
+import re
 
 # Define the folders
 starting_folder = "StartingFolders"
@@ -14,14 +15,25 @@ def get_pdf_title(pdf_path):
     with open(pdf_path, 'rb') as file:
         reader = PdfReader(file)
         first_page = reader.pages[0]
-        text = first_page.extract_text().split('\n')[0]  # Get the first line of text
-    return text.strip()
+        text = first_page.extract_text()  # Extract the text of the first page
+    
+    # Search for the pattern "WX" followed by 4 digits
+    match = re.search(r'WX\d{4}', text)
+    
+    if match:
+        return match.group(0)  # Return the first match
+    else:
+        return None  # Return None if no match is found
 
 # Process each PDF file in the starting folder
 for filename in os.listdir(starting_folder):
     if filename.endswith('.pdf'):
         pdf_path = os.path.join(starting_folder, filename)
+        
         title = get_pdf_title(pdf_path)
+        if title == None:
+            title = filename
+        
         print(title)
         # Create a new folder inside organized_folder using the PDF filename without the extension
         new_folder_name = os.path.splitext(filename)[0]
